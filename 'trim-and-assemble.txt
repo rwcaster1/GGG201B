@@ -1,0 +1,80 @@
+git clone https://github.com/ctb/2017-ucdavis-igg201b.git
+
+sudo apt-get -y install fastqc openjdk-8-jre
+
+git clone https://github.com/voutcn/megahit.git
+cd megahit
+make -j 4
+
+pip install khmer==2.0
+
+mkdir ~/homework2
+cd ~/homework2
+
+curl -O -L https://s3.amazonaws.com/public.ged.msu.edu/ecoli_ref-5m.fastq.gz
+
+gunzip -c ecoli_ref-5m.fastq.gz | head
+
+gunzip -c ecoli_ref-5m.fastq.gz | head -400000 | \
+    split-paired-reads.py -1 top.R1.fq -2 top.R2.fq
+
+sudo apt-get -y install trimmomatic
+
+wget https://anonscm.debian.org/cgit/debian-med/trimmomatic.git/plain/adapters/TruSeq3-PE.fa
+
+TrimmomaticPE top.R1.fq top.R2.fq \
+
+    out-top.R1.fq orphan1 out-top.R2.fq orphan2 \
+
+    ILLUMINACLIP:TruSeq3-PE.fa:2:40:15 \
+
+    LEADING:2 TRAILING:2 \
+
+    SLIDINGWINDOW:4:2 \
+
+    MINLEN:25
+
+interleave-reads.py top.R1.fq top.R2.fq > top-pe.fq
+
+~/megahit/megahit --12 top-pe.fq -o ecoli
+
+# new output: --- [STAT] 2753 contigs, total 1323689 bp, min 212 bp, max 6488 bp, avg 481 bp, N50 480 bp
+--- [Wed Mar  1 23:25:10 2017] ALL DONE. Time elapsed: 61.233351 seconds ---
+# old output: --- [STAT] 117 contigs, total 4577284 bp, min 220 bp, max 246618 bp, avg 39122 bp, N50 105708 bp--- [Fri Feb 10 14:33:59 2017] ALL DONE. Time elapsed: 342.060158 seconds ---
+
+cd ~/
+git clone https://github.com/ablab/quast.git -b release_4.2
+export PYTHONPATH=$(pwd)/quast/libs/
+
+cd ~/homework2
+
+cp ecoli/final.contigs.fa newecoli-assembly.fa
+
+~/quast/quast.py newecoli-assembly.fa -o ecoli_report
+
+python2.7 ~/quast/quast.py newecoli-assembly.fa -o ecoli_report
+
+All statistics are based on contigs of size >= 500 bp, unless otherwise noted (e.g., "# contigs (>= 0 bp)" and "Total length (>= 0 bp)" include all contigs).
+
+Assembly                    newecoli-assembly                     Assembly                    ecoli-assembly
+# contigs (>= 0 bp)         2753                                  # contigs (>= 0 bp)         117           
+# contigs (>= 1000 bp)      68                                    # contigs (>= 1000 bp)      93            
+# contigs (>= 5000 bp)      1                                     # contigs (>= 5000 bp)      69            
+# contigs (>= 10000 bp)     0                                     # contigs (>= 10000 bp)     64            
+# contigs (>= 25000 bp)     0                                     # contigs (>= 25000 bp)     52            
+# contigs (>= 50000 bp)     0                                     # contigs (>= 50000 bp)     32            
+Total length (>= 0 bp)      1323689                               Total length (>= 0 bp)      4577284       
+Total length (>= 1000 bp)   90531                                 Total length (>= 1000 bp)   4566196       
+Total length (>= 5000 bp)   6488                                  Total length (>= 5000 bp)   4508252       
+Total length (>= 10000 bp)  0                                     Total length (>= 10000 bp)  4471041       
+Total length (>= 25000 bp)  0                                     Total length (>= 25000 bp)  4296074       
+Total length (>= 50000 bp)  0                                     Total length (>= 50000 bp)  3578894       
+# contigs                   877                                   # contigs                   102           
+Largest contig              6488                                  Largest contig              246618        
+Total length                609588                                Total length                4572412       
+GC (%)                      49.09                                 GC (%)                      50.74         
+N50                         663                                   N50                         105708        
+N75                         568                                   N75                         53842         
+L50                         342                                   L50                         15            
+L75                         591                                   L75                         30            
+# N's per 100 kbp           0.00                                  # N's per 100 kbp           0.00          
