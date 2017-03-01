@@ -38,10 +38,6 @@ interleave-reads.py top.R1.fq top.R2.fq > top-pe.fq
 
 ~/megahit/megahit --12 top-pe.fq -o ecoli
 
-# new output: --- [STAT] 2753 contigs, total 1323689 bp, min 212 bp, max 6488 bp, avg 481 bp, N50 480 bp
---- [Wed Mar  1 23:25:10 2017] ALL DONE. Time elapsed: 61.233351 seconds ---
-# old output: --- [STAT] 117 contigs, total 4577284 bp, min 220 bp, max 246618 bp, avg 39122 bp, N50 105708 bp--- [Fri Feb 10 14:33:59 2017] ALL DONE. Time elapsed: 342.060158 seconds ---
-
 cd ~/
 git clone https://github.com/ablab/quast.git -b release_4.2
 export PYTHONPATH=$(pwd)/quast/libs/
